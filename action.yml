@@ -1,0 +1,50 @@
+name: 'TestFlight Feedback Import'
+description: 'Import TestFlight tester feedback and crash reports as GitHub Issues'
+author: 'mhyassin'
+
+inputs:
+  asc_issuer_id:
+    description: 'App Store Connect API Issuer ID'
+    required: true
+  asc_key_id:
+    description: 'App Store Connect API Key ID'
+    required: true
+  asc_private_key:
+    description: 'App Store Connect API Private Key (.p8 file content)'
+    required: true
+  asc_bundle_id:
+    description: 'App bundle ID (e.g. com.example.app)'
+    required: true
+  github_token:
+    description: 'GitHub token with issues:write permission'
+    required: true
+  days_back:
+    description: 'How many days back to fetch feedback'
+    required: false
+    default: '7'
+  labels_feedback:
+    description: 'Comma-separated list of labels to apply to feedback issues'
+    required: false
+    default: 'testflight-feedback'
+  labels_crashes:
+    description: 'Comma-separated list of labels to apply to crash report issues'
+    required: false
+    default: 'crash'
+  dry_run:
+    description: 'Log what would be created without actually creating issues'
+    required: false
+    default: 'false'
+  import_crashes:
+    description: 'Whether to import crash reports as issues'
+    required: false
+    default: 'true'
+
+outputs:
+  created:
+    description: 'Number of issues created'
+  skipped:
+    description: 'Number of feedback items skipped (already have an issue)'
+
+runs:
+  using: 'node24'
+  main: 'dist/index.js'

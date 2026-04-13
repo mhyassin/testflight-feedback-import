@@ -1,0 +1,22 @@
+{
+  "name": "testflight-feedback-import",
+  "version": "1.0.0",
+  "description": "Import TestFlight tester feedback and crash reports as GitHub Issues",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node24 --outfile=dist/index.js --sourcemap",
+    "prepare": "npm run build",
+    "prettier": "prettier . --write"
+  },
+  "dependencies": {
+    "@actions/core": "3.0.0",
+    "@actions/github": "9.1.0",
+    "appstore-connect-sdk": "2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.28.0",
+    "prettier": "^3.6.2",
+    "typescript": "5.9.3"
+  }
+}
