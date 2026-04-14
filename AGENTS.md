@@ -22,10 +22,8 @@ A GitHub Action compiled to a self-contained bundle (`dist/index.js`) via `esbui
 | -------------------------------------------------- | ------------------------------------------------------------------------ |
 | `src/index.ts`                                     | Entry point — `run()` orchestrates the full import flow                  |
 | `src/utils/appstoreconnect/fetchVersionStrings.ts` | Fetches version strings for a set of build IDs via `buildsGetCollection` |
-| `src/utils/appstoreconnect/downloadImage.ts`       | Downloads a screenshot image from an Apple-signed URL                    |
 | `src/utils/github/issueExistsForFeedback.ts`       | Paginates issues by label to check for an existing feedback marker       |
 | `src/utils/github/ensureLabelExists.ts`            | Creates a label if it does not already exist                             |
-| `src/utils/github/uploadImageToGitHub.ts`          | Uploads an image buffer to the GitHub CDN via the issues assets endpoint |
 | `src/utils/format/feedbackBody.ts`                 | Builds the markdown body for a new issue                                 |
 | `src/utils/format/buildIncludedMap.ts`             | Indexes an SDK `included` array by resource ID                           |
 | `src/utils/format/testerDisplayName.ts`            | Formats a tester's display name from `BetaTester` attributes             |
@@ -37,6 +35,7 @@ All App Store Connect API calls go through `appstore-connect-sdk`. The SDK's `cr
 
 - **Deduplication** is done by embedding `<!-- testflight-id:<id> -->` in the issue body and paginating existing issues (filtered by label) via `listForRepo` to check for the marker before creating a new issue. Do not change this marker format without updating the check in `issueExistsForFeedback`. The GitHub token requires `Issues: Read` permission for this check to work.
 - **Cutoff filtering** is performed client-side after fetching (ASC does not support date filtering on these endpoints). Items older than `days_back` are skipped before the dedup check.
+- **Screenshots** are embedded using Apple's signed CDN URLs directly from the ASC API response — no download or re-upload. These URLs are time-limited; this is an accepted trade-off.
 - **Dry run** (`dry_run: 'true'`) must never create issues or labels — gate all write calls behind `if (!dryRun)`.
 
 ## Inputs

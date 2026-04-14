@@ -2,8 +2,8 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { appsBetaFeedbackScreenshotSubmissionsGetToManyRelated } from 'appstore-connect-sdk';
 import type { Client } from 'appstore-connect-sdk';
-import { fetchVersionStrings, downloadImage } from './utils/appstoreconnect';
-import { issueExistsForFeedback, uploadImageToGitHub } from './utils/github';
+import { fetchVersionStrings } from './utils/appstoreconnect';
+import { issueExistsForFeedback } from './utils/github';
 import { feedbackBody, buildIncludedMap, testerDisplayName, buildVersion } from './utils/format';
 
 type Octokit = ReturnType<typeof github.getOctokit>;
@@ -15,7 +15,6 @@ interface ImportFeedbackParams {
   repo: string;
   appId: string;
   appName: string;
-  githubToken: string;
   labels: string[];
   cutoff: Date;
   dryRun: boolean;
@@ -28,7 +27,6 @@ export const importFeedback = async ({
   repo,
   appId,
   appName,
-  githubToken,
   labels,
   cutoff,
   dryRun,
@@ -73,20 +71,9 @@ export const importFeedback = async ({
     const testerName = testerDisplayName(tester);
     const version = buildVersion(build, versionStrings.get(build?.id ?? ''));
 
-    const screenshotUrls: string[] = [];
-    if (!dryRun) {
-      for (let i = 0; i < (attrs.screenshots ?? []).length; i++) {
-        const url = attrs.screenshots?.[i].url;
-        if (!url) continue;
-        try {
-          const image = await downloadImage(url);
-          const uploaded = await uploadImageToGitHub(githubToken, owner, repo, image);
-          screenshotUrls.push(uploaded);
-        } catch (err) {
-          core.warning(`Failed to upload screenshot ${i + 1} for ${item.id}: ${err}`);
-        }
-      }
-    }
+    const screenshotUrls = (attrs.screenshots ?? [])
+      .map((s) => s.url)
+      .filter((i) => i !== undefined);
 
     const title = `[testflight] feedback on ${appName} build ${version}`;
     const body = feedbackBody(

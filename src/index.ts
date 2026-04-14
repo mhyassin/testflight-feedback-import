@@ -71,7 +71,6 @@ const run = async (): Promise<void> => {
 
   const feedbackStats = await importFeedback({
     ...baseParams,
-    githubToken,
     labels: feedbackLabels,
   });
 

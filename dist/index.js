@@ -13319,7 +13319,7 @@ var require_fetch = __commonJS({
     function handleFetchDone(response) {
       finalizeAndReportTiming(response, "fetch");
     }
-    function fetch3(input, init = void 0) {
+    function fetch2(input, init = void 0) {
       webidl.argumentLengthCheck(arguments, 1, "globalThis.fetch");
       let p = createDeferredPromise();
       let requestObject;
@@ -14276,7 +14276,7 @@ var require_fetch = __commonJS({
       }
     }
     module2.exports = {
-      fetch: fetch3,
+      fetch: fetch2,
       Fetch,
       fetching,
       finalizeAndReportTiming
@@ -18534,7 +18534,7 @@ var require_undici = __commonJS({
     module2.exports.setGlobalDispatcher = setGlobalDispatcher;
     module2.exports.getGlobalDispatcher = getGlobalDispatcher;
     var fetchImpl = require_fetch().fetch;
-    module2.exports.fetch = async function fetch3(init, options = void 0) {
+    module2.exports.fetch = async function fetch2(init, options = void 0) {
       try {
         return await fetchImpl(init, options);
       } catch (err) {
@@ -19942,9 +19942,6 @@ function setFailed(message2) {
 function error(message2, properties = {}) {
   issueCommand("error", toCommandProperties(properties), message2 instanceof Error ? message2.toString() : message2);
 }
-function warning(message2, properties = {}) {
-  issueCommand("warning", toCommandProperties(properties), message2 instanceof Error ? message2.toString() : message2);
-}
 function info(message2) {
   process.stdout.write(message2 + os4.EOL);
 }
@@ -20668,8 +20665,8 @@ function isPlainObject2(value) {
 }
 var noop = () => "";
 async function fetchWrapper(requestOptions) {
-  const fetch3 = requestOptions.request?.fetch || globalThis.fetch;
-  if (!fetch3) {
+  const fetch2 = requestOptions.request?.fetch || globalThis.fetch;
+  if (!fetch2) {
     throw new Error(
       "fetch is not set. Please pass a fetch implementation as new Octokit({ request: { fetch }}). Learn more at https://github.com/octokit/octokit.js/#fetch-missing"
     );
@@ -20685,7 +20682,7 @@ async function fetchWrapper(requestOptions) {
   );
   let fetchResponse;
   try {
-    fetchResponse = await fetch3(requestOptions.url, {
+    fetchResponse = await fetch2(requestOptions.url, {
       method: requestOptions.method,
       body,
       redirect: requestOptions.request?.redirect,
@@ -90523,13 +90520,6 @@ var fetchVersionStrings = async (client2, buildIds) => {
   return map2;
 };
 
-// src/utils/appstoreconnect/downloadImage.ts
-var downloadImage = async (url2) => {
-  const res = await fetch(url2);
-  if (!res.ok) throw new Error(`Failed to download image: ${res.status}`);
-  return Buffer.from(await res.arrayBuffer());
-};
-
 // src/utils/github/issueExistsForFeedback.ts
 var issueExistsForFeedback = async (octokit, owner, repo, label, feedbackId) => {
   const marker = `testflight-id:${feedbackId}`;
@@ -90567,22 +90557,6 @@ var ensureLabelExists = async (octokit, owner, repo, name) => {
     });
     info(`Created label: ${name}`);
   }
-};
-
-// src/utils/github/uploadImageToGitHub.ts
-var uploadImageToGitHub = async (token, owner, repo, image) => {
-  const res = await fetch(`https://uploads.github.com/repos/${owner}/${repo}/issues/assets`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: "application/vnd.github+json",
-      "Content-Type": "image/jpeg"
-    },
-    body: image
-  });
-  if (!res.ok) throw new Error(`GitHub image upload ${res.status}: ${await res.text()}`);
-  const { url: url2 } = await res.json();
-  return url2;
 };
 
 // src/utils/format/feedbackBody.ts
@@ -90653,7 +90627,6 @@ var importFeedback = async ({
   repo,
   appId,
   appName,
-  githubToken,
   labels,
   cutoff,
   dryRun
@@ -90692,20 +90665,7 @@ var importFeedback = async ({
     const build = buildEntry?.type === "builds" ? buildEntry : void 0;
     const testerName = testerDisplayName(tester);
     const version2 = buildVersion(build, versionStrings.get(build?.id ?? ""));
-    const screenshotUrls = [];
-    if (!dryRun) {
-      for (let i = 0; i < (attrs.screenshots ?? []).length; i++) {
-        const url2 = attrs.screenshots?.[i].url;
-        if (!url2) continue;
-        try {
-          const image = await downloadImage(url2);
-          const uploaded = await uploadImageToGitHub(githubToken, owner, repo, image);
-          screenshotUrls.push(uploaded);
-        } catch (err) {
-          warning(`Failed to upload screenshot ${i + 1} for ${item.id}: ${err}`);
-        }
-      }
-    }
+    const screenshotUrls = (attrs.screenshots ?? []).map((s) => s.url).filter((i) => i !== void 0);
     const title = `[testflight] feedback on ${appName} build ${version2}`;
     const body = feedbackBody(
       "feedback",
@@ -90839,7 +90799,6 @@ var run = async () => {
   };
   const feedbackStats = await importFeedback({
     ...baseParams,
-    githubToken,
     labels: feedbackLabels
   });
   const crashStats = shouldImportCrashes ? await importCrashes({ ...baseParams, labels: crashLabels }) : { created: 0, skipped: 0 };
