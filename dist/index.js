@@ -90560,7 +90560,7 @@ var ensureLabelExists = async (octokit, owner, repo, name) => {
 };
 
 // src/utils/format/feedbackBody.ts
-var feedbackBody = (type, id, appName, testerName, buildVersion2, attrs, screenshotUrls) => {
+var feedbackBody = ({ type, attrs }, id, appName, testerName, buildVersion2) => {
   const date5 = attrs?.createdDate ? new Date(attrs.createdDate).toUTCString() : "Unknown date";
   const commentText = attrs?.comment?.trim() || "_No comment provided_";
   const heading = type === "crash" ? "TestFlight Crash Report" : "TestFlight Feedback";
@@ -90570,12 +90570,8 @@ var feedbackBody = (type, id, appName, testerName, buildVersion2, attrs, screens
     v
   ]);
   const detailSection = detailRows.length > 0 ? ["", "### Details", "", ...detailRows.map(([k, v]) => `**${k}:** ${v}`)] : [];
-  const screenshotsSection = type === "feedback" && screenshotUrls?.length ? [
-    "",
-    "### Screenshots",
-    "",
-    ...screenshotUrls.map((url2, i) => `![Screenshot ${i + 1}](${url2})`)
-  ] : [];
+  const screenshotsSection = type === "feedback" ? (attrs?.screenshots ?? []).map((s) => s.url).filter((u) => u !== void 0).map((url2, i) => `![Screenshot ${i + 1}](${url2})`) : [];
+  const screenshotsBlock = screenshotsSection.length ? ["", "### Screenshots", "", ...screenshotsSection] : [];
   return [
     `## ${heading}`,
     "",
@@ -90590,7 +90586,7 @@ var feedbackBody = (type, id, appName, testerName, buildVersion2, attrs, screens
     "### Comment",
     "",
     commentText,
-    ...screenshotsSection,
+    ...screenshotsBlock,
     "",
     "---",
     "",
@@ -90665,17 +90661,8 @@ var importFeedback = async ({
     const build = buildEntry?.type === "builds" ? buildEntry : void 0;
     const testerName = testerDisplayName(tester);
     const version2 = buildVersion(build, versionStrings.get(build?.id ?? ""));
-    const screenshotUrls = (attrs.screenshots ?? []).map((s) => s.url).filter((i) => i !== void 0);
     const title = `[testflight] feedback on ${appName} build ${version2}`;
-    const body = feedbackBody(
-      "feedback",
-      item.id,
-      appName,
-      testerName,
-      version2,
-      attrs,
-      screenshotUrls
-    );
+    const body = feedbackBody({ type: "feedback", attrs }, item.id, appName, testerName, version2);
     if (dryRun) {
       info(`  [DRY RUN] would create: ${title} id: ${item.id}`);
     } else {
@@ -90735,7 +90722,7 @@ var importCrashes = async ({
     const testerName = testerDisplayName(tester);
     const version2 = buildVersion(build, versionStrings.get(build?.id ?? ""));
     const title = `[testflight] crash on ${appName} build ${version2}`;
-    const body = feedbackBody("crash", item.id, appName, testerName, version2, attrs);
+    const body = feedbackBody({ type: "crash", attrs }, item.id, appName, testerName, version2);
     if (dryRun) {
       info(`  [DRY RUN] would create: ${title} id: ${item.id}`);
     } else {

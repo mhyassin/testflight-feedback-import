@@ -57,7 +57,7 @@ export const importCrashes = async ({
     const version = buildVersion(build, versionStrings.get(build?.id ?? ''));
 
     const title = `[testflight] crash on ${appName} build ${version}`;
-    const body = feedbackBody('crash', item.id, appName, testerName, version, attrs);
+    const body = feedbackBody({ type: 'crash', attrs }, item.id, appName, testerName, version);
 
     if (dryRun) {
       core.info(`  [DRY RUN] would create: ${title} id: ${item.id}`);

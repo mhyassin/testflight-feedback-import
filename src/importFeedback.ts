@@ -56,20 +56,8 @@ export const importFeedback = async ({
     const testerName = testerDisplayName(tester);
     const version = buildVersion(build, versionStrings.get(build?.id ?? ''));
 
-    const screenshotUrls = (attrs.screenshots ?? [])
-      .map((s) => s.url)
-      .filter((i) => i !== undefined);
-
     const title = `[testflight] feedback on ${appName} build ${version}`;
-    const body = feedbackBody(
-      'feedback',
-      item.id,
-      appName,
-      testerName,
-      version,
-      attrs,
-      screenshotUrls,
-    );
+    const body = feedbackBody({ type: 'feedback', attrs }, item.id, appName, testerName, version);
 
     if (dryRun) {
       core.info(`  [DRY RUN] would create: ${title} id: ${item.id}`);

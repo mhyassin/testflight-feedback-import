@@ -3,14 +3,16 @@ import {
   BetaFeedbackScreenshotSubmission,
 } from 'appstore-connect-sdk';
 
+type Params =
+  | { type: 'feedback'; attrs: BetaFeedbackScreenshotSubmission['attributes'] }
+  | { type: 'crash'; attrs: BetaFeedbackCrashSubmission['attributes'] };
+
 export const feedbackBody = (
-  type: 'feedback' | 'crash',
+  { type, attrs }: Params,
   id: string,
   appName: string,
   testerName: string,
   buildVersion: string,
-  attrs: BetaFeedbackScreenshotSubmission['attributes'] | BetaFeedbackCrashSubmission['attributes'],
-  screenshotUrls?: string[],
 ): string => {
   const date = attrs?.createdDate ? new Date(attrs.createdDate).toUTCString() : 'Unknown date';
   const commentText = attrs?.comment?.trim() || '_No comment provided_';
@@ -30,14 +32,16 @@ export const feedbackBody = (
       : [];
 
   const screenshotsSection =
-    type === 'feedback' && screenshotUrls?.length
-      ? [
-          '',
-          '### Screenshots',
-          '',
-          ...screenshotUrls.map((url, i) => `![Screenshot ${i + 1}](${url})`),
-        ]
+    type === 'feedback'
+      ? (attrs?.screenshots ?? [])
+          .map((s) => s.url)
+          .filter((u) => u !== undefined)
+          .map((url, i) => `![Screenshot ${i + 1}](${url})`)
       : [];
+
+  const screenshotsBlock = screenshotsSection.length
+    ? ['', '### Screenshots', '', ...screenshotsSection]
+    : [];
 
   return [
     `## ${heading}`,
@@ -53,7 +57,7 @@ export const feedbackBody = (
     '### Comment',
     '',
     commentText,
-    ...screenshotsSection,
+    ...screenshotsBlock,
     '',
     '---',
     '',
