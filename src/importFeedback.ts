@@ -1,24 +1,9 @@
 import * as core from '@actions/core';
-import * as github from '@actions/github';
 import { appsBetaFeedbackScreenshotSubmissionsGetToManyRelated } from 'appstore-connect-sdk';
-import type { Client } from 'appstore-connect-sdk';
 import { fetchVersionStrings } from './utils/appstoreconnect';
 import { issueExistsForFeedback } from './utils/github';
 import { feedbackBody, buildIncludedMap, testerDisplayName, buildVersion } from './utils/format';
-
-type Octokit = ReturnType<typeof github.getOctokit>;
-
-interface ImportFeedbackParams {
-  client: Client;
-  octokit: Octokit;
-  owner: string;
-  repo: string;
-  appId: string;
-  appName: string;
-  labels: string[];
-  cutoff: Date;
-  dryRun: boolean;
-}
+import type { ImportParams } from './types';
 
 export const importFeedback = async ({
   client,
@@ -30,7 +15,7 @@ export const importFeedback = async ({
   labels,
   cutoff,
   dryRun,
-}: ImportFeedbackParams): Promise<{ created: number; skipped: number }> => {
+}: ImportParams): Promise<{ created: number; skipped: number }> => {
   let created = 0;
   let skipped = 0;
 

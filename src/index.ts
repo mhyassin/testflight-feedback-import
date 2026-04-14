@@ -5,6 +5,7 @@ import { resolveApp } from './utils/appstoreconnect';
 import { ensureLabelExists } from './utils/github';
 import { importFeedback } from './importFeedback';
 import { importCrashes } from './importCrashes';
+import type { ImportParams } from './types';
 
 const run = async (): Promise<void> => {
   const ascIssuerId = core.getInput('asc_issuer_id', { required: true });
@@ -58,7 +59,7 @@ const run = async (): Promise<void> => {
     }
   }
 
-  const baseParams = {
+  const baseParams: Omit<ImportParams, 'labels'> = {
     client,
     octokit,
     owner,
