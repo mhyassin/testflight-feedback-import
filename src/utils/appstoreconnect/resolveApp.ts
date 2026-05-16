@@ -13,9 +13,10 @@ export const resolveApp = async (
     },
   });
   if (error) throw new Error(`ASC apps fetch error: ${JSON.stringify(error)}`);
-  if (!data.data.length) return null;
+  const app = data.data.find((a) => a.attributes?.bundleId === bundleId);
+  if (!app) return null;
   return {
-    id: data.data[0].id,
-    name: data.data[0].attributes?.name ?? bundleId,
+    id: app.id,
+    name: app.attributes?.name ?? bundleId,
   };
 };
